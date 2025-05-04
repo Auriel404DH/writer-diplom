@@ -97,7 +97,42 @@ export function ObjectCardItem({ card, onEdit }: ObjectCardItemProps) {
       <div className="p-3">
         <h4 className="font-medium">{card.title}</h4>
         <div className="text-sm text-neutral-600 mt-1 space-y-2">
-          <p className="text-sm">{card.description}</p>
+          <div className="grid gap-1">
+            {(() => {
+              try {
+                // Try to parse the description as JSON
+                if (card.description && card.description.trim().startsWith('[')) {
+                  const fields = JSON.parse(card.description);
+                  return fields.map((field: { key: string; value: string }, index: number) => (
+                    <div key={index} className="grid grid-cols-3 gap-1">
+                      <div className="font-medium text-xs">{field.key}:</div>
+                      <div className="col-span-2 text-xs">{field.value}</div>
+                    </div>
+                  ));
+                }
+                
+                // Fallback to displaying as key-value pairs if possible
+                const lines = card.description.split('\n').filter(line => line.includes(':'));
+                if (lines.length > 0) {
+                  return lines.map((line, index) => {
+                    const [key, ...value] = line.split(':');
+                    return (
+                      <div key={index} className="grid grid-cols-3 gap-1">
+                        <div className="font-medium text-xs">{key.trim()}:</div>
+                        <div className="col-span-2 text-xs">{value.join(':').trim()}</div>
+                      </div>
+                    );
+                  });
+                }
+                
+                // If all else fails, just show the description
+                return <p className="text-sm">{card.description}</p>;
+              } catch (e) {
+                return <p className="text-sm">{card.description}</p>;
+              }
+            })()}
+          </div>
+          
           {card.tags && card.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 pt-1">
               {card.tags.map((tag, index) => (
