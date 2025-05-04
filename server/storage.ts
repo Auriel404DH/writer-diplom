@@ -47,6 +47,8 @@ export interface IStorage {
   createCard(cardData: any, chapterIds: number[]): Promise<ObjectCard>;
   getCardById(id: number): Promise<ObjectCard | null>;
   getCardsByChapterId(chapterId: number): Promise<ObjectCard[]>;
+  getCardsByBookId(bookId: number): Promise<ObjectCard[]>;
+  getCardChapterRelationships(chapterId: number): Promise<{cardId: number, chapterId: number}[]>;
   updateCard(id: number, cardData: any, chapterIds?: number[]): Promise<ObjectCard>;
   deleteCard(id: number): Promise<void>;
   
@@ -369,6 +371,64 @@ export class DatabaseStorage implements IStorage {
       ...card,
       chapterIds
     };
+  }
+  
+  async getCardChapterRelationships(chapterId: number): Promise<{cardId: number, chapterId: number}[]> {
+    // Return all card-chapter relationships for a specific chapter
+    return await db.select({ 
+      cardId: cardChapters.cardId, 
+      chapterId: cardChapters.chapterId 
+    })
+    .from(cardChapters)
+    .where(eq(cardChapters.chapterId, chapterId));
+  }
+  
+  async getCardsByBookId(bookId: number): Promise<ObjectCard[]> {
+    // First, get all chapters for this book
+    const bookChapters = await this.getChaptersByBookId(bookId);
+    
+    if (bookChapters.length === 0) return [];
+    
+    const chapterIds = bookChapters.map(chapter => chapter.id);
+    
+    // Get card IDs related to these chapters
+    const cardChapterRelations = await db.select({ cardId: cardChapters.cardId })
+      .from(cardChapters)
+      .where(sql`${cardChapters.chapterId} IN ${chapterIds}`);
+    
+    if (cardChapterRelations.length === 0) return [];
+    
+    // Extract unique card IDs
+    const cardIdSet = new Set<number>();
+    cardChapterRelations.forEach(relation => cardIdSet.add(relation.cardId));
+    const cardIdArray = Array.from(cardIdSet);
+    
+    // Get all these cards
+    const cardsResult = await db.query.cards.findMany({
+      where: sql`${cards.id} IN ${cardIdArray}`,
+      orderBy: [asc(cards.type), asc(cards.title)]
+    });
+    
+    // Get all chapter associations for these cards
+    const allCardChapterRelations = await db.select()
+      .from(cardChapters)
+      .where(sql`${cardChapters.cardId} IN ${cardIdArray}`);
+    
+    // Create a map of card ID to chapter IDs
+    const cardChapterMap: Record<number, number[]> = {};
+    
+    allCardChapterRelations.forEach(relation => {
+      if (!cardChapterMap[relation.cardId]) {
+        cardChapterMap[relation.cardId] = [];
+      }
+      cardChapterMap[relation.cardId].push(relation.chapterId);
+    });
+    
+    // Add chapter IDs to each card
+    return cardsResult.map(card => ({
+      ...card,
+      chapterIds: cardChapterMap[card.id] || []
+    }));
   }
   
   async getCardsByChapterId(chapterId: number): Promise<ObjectCard[]> {

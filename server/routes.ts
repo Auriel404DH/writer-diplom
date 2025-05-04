@@ -247,6 +247,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Object Cards API
+  app.get("/api/books/:bookId/cards", async (req, res) => {
+    try {
+      const bookId = parseInt(req.params.bookId);
+      const book = await storage.getBookById(bookId);
+      
+      if (!book) {
+        return res.status(404).json({ message: "Книга не найдена" });
+      }
+      
+      if (book.authorId !== req.user?.id && !book.published) {
+        return res.status(403).json({ message: "Доступ запрещен" });
+      }
+      
+      const cards = await storage.getCardsByBookId(bookId);
+      res.json(cards);
+    } catch (error) {
+      console.error("Error fetching cards:", error);
+      res.status(500).json({ message: "Ошибка при получении карточек" });
+    }
+  });
+  
+  // Keep the chapter-specific endpoint for backward compatibility
   app.get("/api/chapters/:chapterId/cards", async (req, res) => {
     try {
       const chapterId = parseInt(req.params.chapterId);
@@ -262,7 +284,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Доступ запрещен" });
       }
       
-      const cards = await storage.getCardsByChapterId(chapterId);
+      // Get all book cards and filter for this chapter
+      const allBookCards = await storage.getCardsByBookId(chapter.bookId);
+      // Get card chapter relationships to filter cards associated with this chapter
+      const chapterCards = await storage.getCardChapterRelationships(chapterId);
+      const chapterCardIds = new Set(chapterCards.map(cc => cc.cardId));
+      
+      // Filter cards that are associated with this chapter
+      const cards = allBookCards.filter(card => chapterCardIds.has(card.id));
       res.json(cards);
     } catch (error) {
       console.error("Error fetching cards:", error);

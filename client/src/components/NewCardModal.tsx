@@ -52,10 +52,11 @@ interface NewCardModalProps {
   open: boolean;
   onClose: () => void;
   chapterId: number;
+  bookId?: number;
   editCard?: ObjectCard | null;
 }
 
-export function NewCardModal({ open, onClose, chapterId, editCard }: NewCardModalProps) {
+export function NewCardModal({ open, onClose, chapterId, bookId, editCard }: NewCardModalProps) {
   const { toast } = useToast();
   const [cardType, setCardType] = useState('character');
   const [title, setTitle] = useState('');
@@ -63,9 +64,20 @@ export function NewCardModal({ open, onClose, chapterId, editCard }: NewCardModa
   const [tags, setTags] = useState('');
   const [selectedChapterIds, setSelectedChapterIds] = useState<number[]>([]);
 
+  // If we have a bookId, get all chapters for that book
+  const { data: bookChapters = [] } = useQuery({
+    queryKey: [`/api/books/${bookId}/chapters`],
+    enabled: !!bookId,
+  });
+  
+  // Fallback to all user chapters if no bookId is provided
   const { data: allChapters = [] } = useQuery({
     queryKey: ['/api/chapters'],
+    enabled: !bookId,
   });
+  
+  // Use book chapters if available, otherwise use all chapters
+  const chapters = bookId ? bookChapters : allChapters;
 
   useEffect(() => {
     if (editCard) {
@@ -99,6 +111,10 @@ export function NewCardModal({ open, onClose, chapterId, editCard }: NewCardModa
       return res.json();
     },
     onSuccess: () => {
+      // Invalidate both chapter-specific and book-wide card queries
+      if (bookId) {
+        queryClient.invalidateQueries({ queryKey: [`/api/books/${bookId}/cards`] });
+      }
       queryClient.invalidateQueries({ queryKey: [`/api/chapters/${chapterId}/cards`] });
       toast({
         title: "Карточка создана",
@@ -128,6 +144,10 @@ export function NewCardModal({ open, onClose, chapterId, editCard }: NewCardModa
       return res.json();
     },
     onSuccess: () => {
+      // Invalidate both chapter-specific and book-wide card queries
+      if (bookId) {
+        queryClient.invalidateQueries({ queryKey: [`/api/books/${bookId}/cards`] });
+      }
       queryClient.invalidateQueries({ queryKey: [`/api/chapters/${chapterId}/cards`] });
       toast({
         title: "Карточка обновлена",

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ObjectCard, cardTypes } from '@shared/types';
+import { ObjectCard, cardTypes, Chapter } from '@shared/types';
 import { ObjectCardItem } from '@/components/ObjectCardItem';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,13 +19,31 @@ export function ObjectCardPanel({ chapterId }: ObjectCardPanelProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<ObjectCard | null>(null);
   const [filterType, setFilterType] = useState<string | null>(null);
+  const [bookId, setBookId] = useState<number | null>(null);
 
-  const { data: cards, isLoading } = useQuery<ObjectCard[]>({
-    queryKey: [`/api/chapters/${chapterId}/cards`],
+  // First, get the chapter to determine the book ID
+  const { data: chapter, isLoading: isLoadingChapter } = useQuery<Chapter>({
+    queryKey: [`/api/chapters/${chapterId}`],
     enabled: !!chapterId,
+    onSuccess: (data) => {
+      if (data && data.bookId) {
+        setBookId(data.bookId);
+      }
+    }
   });
 
-  const filteredCards = cards?.filter(card => {
+  // Then fetch all book cards
+  const { data: cards, isLoading: isLoadingCards } = useQuery<ObjectCard[]>({
+    queryKey: [`/api/books/${bookId}/cards`],
+    enabled: !!bookId,
+  });
+
+  // Filter cards related to this chapter
+  const chapterCards = cards?.filter(card => 
+    card.chapterIds?.includes(chapterId)
+  );
+
+  const filteredCards = chapterCards?.filter(card => {
     const matchesSearch = !searchQuery || 
       card.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       card.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -46,10 +64,12 @@ export function ObjectCardPanel({ chapterId }: ObjectCardPanelProps) {
     setEditingCard(null);
   };
 
+  const isLoading = isLoadingChapter || isLoadingCards;
+
   return (
     <div className="w-full lg:w-80 h-full border-l border-neutral-200 bg-white overflow-y-auto">
       <div className="p-4 border-b border-neutral-200">
-        <h3 className="text-sm font-semibold text-neutral-700">Карточки объектов <span className="text-xs font-normal text-neutral-500">(в этой главе)</span></h3>
+        <h3 className="text-sm font-semibold text-neutral-700">Карточки объектов <span className="text-xs font-normal text-neutral-500">(в книге)</span></h3>
         
         <div className="relative mt-2">
           <Input
@@ -110,7 +130,7 @@ export function ObjectCardPanel({ chapterId }: ObjectCardPanelProps) {
               <div className="text-center py-8 text-muted-foreground">
                 {searchQuery || filterType ? 
                   "Нет карточек, соответствующих вашему поиску" : 
-                  "В этой главе пока нет карточек объектов"}
+                  "В книге пока нет карточек объектов"}
               </div>
             )}
             
@@ -130,6 +150,7 @@ export function ObjectCardPanel({ chapterId }: ObjectCardPanelProps) {
         open={isModalOpen} 
         onClose={handleCloseModal} 
         chapterId={chapterId}
+        bookId={bookId || undefined}
         editCard={editingCard}
       />
     </div>
