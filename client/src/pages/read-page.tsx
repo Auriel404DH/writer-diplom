@@ -7,34 +7,20 @@ import { formatDate } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { ChapterList } from "@/components/ChapterList";
+import { Book as BookType, Chapter } from "@shared/types";
 
 export default function ReadPage() {
   const { bookId, chapterId } = useParams<{ bookId: string; chapterId?: string }>();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
-  const { data: book, isLoading: isLoadingBook } = useQuery({
+  const { data: book, isLoading: isLoadingBook } = useQuery<BookType>({
     queryKey: [`/api/books/${bookId}`],
-    onError: (error: Error) => {
-      toast({
-        title: "Ошибка",
-        description: `Не удалось загрузить книгу: ${error.message}`,
-        variant: "destructive",
-      });
-      setLocation("/library");
-    },
   });
 
-  const { data: chapter, isLoading: isLoadingChapter } = useQuery({
+  const { data: chapter, isLoading: isLoadingChapter } = useQuery<Chapter>({
     queryKey: [`/api/chapters/${chapterId}`],
     enabled: !!chapterId,
-    onError: (error: Error) => {
-      toast({
-        title: "Ошибка",
-        description: `Не удалось загрузить главу: ${error.message}`,
-        variant: "destructive",
-      });
-    },
   });
 
   if (isLoadingBook || (chapterId && isLoadingChapter)) {

@@ -199,7 +199,7 @@ function BookCard({ book, isOwner, isNew, isPopular }: BookCardProps) {
           )}
           
           <Button variant="default" size="sm" asChild>
-            <Link href={`/library/${book.id}`}>
+            <Link href={`/read/${book.id}`}>
               Читать
             </Link>
           </Button>
