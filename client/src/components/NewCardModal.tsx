@@ -368,27 +368,57 @@ export function NewCardModal({ open, onClose, chapterId, bookId, editCard }: New
           
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1">Привязка к главам</label>
-            <Select
-              value={chapterId.toString()}
-              onValueChange={(value) => {
-                const id = parseInt(value);
-                setSelectedChapterIds([id]);
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Выберите главы..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={chapterId.toString()}>Текущая глава</SelectItem>
-                {Array.isArray(allChapters) && allChapters.map((chapter: any) => (
-                  chapter.id !== chapterId && (
-                    <SelectItem key={chapter.id} value={chapter.id.toString()}>
-                      {chapter.title}
-                    </SelectItem>
-                  )
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <div className="bg-neutral-50 p-2 rounded border border-neutral-200">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id={`chapter-${chapterId}`}
+                    checked={selectedChapterIds.includes(chapterId)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedChapterIds(prev => [...prev, chapterId]);
+                      } else {
+                        setSelectedChapterIds(prev => prev.filter(id => id !== chapterId));
+                      }
+                    }}
+                    className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <label htmlFor={`chapter-${chapterId}`} className="ml-2 text-sm text-neutral-700">
+                    Текущая глава
+                  </label>
+                </div>
+              </div>
+              
+              {Array.isArray(chapters) && chapters.length > 0 && (
+                <div className="max-h-48 overflow-y-auto border border-neutral-200 rounded divide-y divide-neutral-200">
+                  {chapters.filter((chapter: any) => chapter.id !== chapterId).map((chapter: any) => (
+                    <div key={chapter.id} className="flex items-center p-2 hover:bg-neutral-50">
+                      <input
+                        type="checkbox"
+                        id={`chapter-${chapter.id}`}
+                        checked={selectedChapterIds.includes(chapter.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedChapterIds(prev => [...prev, chapter.id]);
+                          } else {
+                            setSelectedChapterIds(prev => prev.filter(id => id !== chapter.id));
+                          }
+                        }}
+                        className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                      />
+                      <label htmlFor={`chapter-${chapter.id}`} className="ml-2 text-sm text-neutral-700">
+                        {chapter.title}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {selectedChapterIds.length === 0 && (
+                <p className="text-sm text-red-500">Выберите хотя бы одну главу</p>
+              )}
+            </div>
           </div>
         </div>
         
