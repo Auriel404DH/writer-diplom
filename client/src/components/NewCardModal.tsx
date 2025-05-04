@@ -285,14 +285,14 @@ export function NewCardModal({ open, onClose, chapterId, editCard }: NewCardModa
                 <div key={index} className="flex gap-2">
                   <div className="flex-1">
                     <Select
-                      value={field.key || ""}
-                      onValueChange={(value) => updateField(index, value, field.value)}
+                      value={field.key || "select_field"}
+                      onValueChange={(value) => updateField(index, value === "select_field" ? "" : value, field.value)}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Выберите поле..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Выберите поле...</SelectItem>
+                        <SelectItem value="select_field">Выберите поле...</SelectItem>
                         {getFieldSuggestions(cardType)?.map(suggestion => (
                           <SelectItem key={suggestion} value={suggestion}>
                             {suggestion}
