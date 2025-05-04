@@ -12,13 +12,16 @@ import { useLocation } from 'wouter';
 interface ChapterListProps {
   bookId: number;
   currentChapterId?: number;
+  mode?: 'read' | 'edit';
+  canEdit?: boolean;
 }
 
-export function ChapterList({ bookId, currentChapterId }: ChapterListProps) {
+export function ChapterList({ bookId, currentChapterId, mode = 'edit', canEdit = true }: ChapterListProps) {
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
   const [isAddingChapter, setIsAddingChapter] = useState(false);
   const [newChapterTitle, setNewChapterTitle] = useState('');
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const { data: chapters, isLoading } = useQuery<Chapter[]>({
     queryKey: [`/api/books/${bookId}/chapters`],
@@ -63,21 +66,77 @@ export function ChapterList({ bookId, currentChapterId }: ChapterListProps) {
     );
   }
 
+  // Add new mutation for reordering chapters
+  const reorderChaptersMutation = useMutation({
+    mutationFn: async (chaptersOrder: number[]) => {
+      return await apiRequest("PATCH", `/api/books/${bookId}/chapters/reorder`, { chaptersOrder });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/books/${bookId}/chapters`] });
+      toast({
+        title: "Порядок изменен",
+        description: "Порядок глав успешно обновлен"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Ошибка",
+        description: `Не удалось изменить порядок глав: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  });
+  
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+  
+  const handleDragOver = (event: React.DragEvent, index: number) => {
+    event.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+  };
+  
+  const handleDrop = (targetIndex: number) => {
+    if (draggedIndex === null || !chapters) return;
+    
+    const newChapters = [...chapters];
+    const draggedChapter = newChapters[draggedIndex];
+    
+    // Remove dragged chapter
+    newChapters.splice(draggedIndex, 1);
+    // Insert at new position
+    newChapters.splice(targetIndex, 0, draggedChapter);
+    
+    // Get the reordered chapter IDs
+    const newOrder = newChapters.map(chapter => chapter.id);
+    
+    // Call API to save the new order
+    reorderChaptersMutation.mutate(newOrder);
+    
+    setDraggedIndex(null);
+  };
+  
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-xs font-medium text-neutral-500">ГЛАВЫ</h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsAddingChapter(true)}
-          className="text-primary hover:text-primary/80 text-xs font-medium h-6 px-2"
-        >
-          <PlusIcon className="h-3 w-3 mr-1" /> Добавить
-        </Button>
+        {mode === 'edit' && canEdit && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsAddingChapter(true)}
+            className="text-primary hover:text-primary/80 text-xs font-medium h-6 px-2"
+          >
+            <PlusIcon className="h-3 w-3 mr-1" /> Добавить
+          </Button>
+        )}
       </div>
       
-      {isAddingChapter && (
+      {mode === 'edit' && canEdit && isAddingChapter && (
         <div className="mb-3 flex items-center space-x-1">
           <Input
             value={newChapterTitle}
@@ -109,23 +168,47 @@ export function ChapterList({ bookId, currentChapterId }: ChapterListProps) {
       )}
       
       <div className="space-y-1">
-        {chapters?.map((chapter) => (
-          <Button
+        {chapters?.map((chapter, index) => (
+          <div
             key={chapter.id}
-            variant="ghost"
+            draggable={mode === 'edit' && canEdit}
+            onDragStart={() => mode === 'edit' && canEdit && handleDragStart(index)}
+            onDragOver={(e) => mode === 'edit' && canEdit && handleDragOver(e, index)}
+            onDrop={() => mode === 'edit' && canEdit && handleDrop(index)}
+            onDragEnd={handleDragEnd}
             className={cn(
-              "flex items-center justify-start w-full p-2 rounded-md text-left",
-              chapter.id === currentChapterId ? "bg-primary-50 text-primary-900" : "hover:bg-neutral-100"
+              "relative",
+              draggedIndex === index ? "opacity-50" : "opacity-100",
+              mode === 'edit' && canEdit ? "cursor-move" : ""
             )}
-            onClick={() => setLocation(`/editor/${bookId}/${chapter.id}`)}
           >
-            <span className="text-sm truncate">{chapter.title}</span>
-          </Button>
+            <Button
+              variant="ghost"
+              className={cn(
+                "flex items-center justify-start w-full p-2 rounded-md text-left",
+                chapter.id === currentChapterId ? "bg-primary-50 text-primary-900" : "hover:bg-neutral-100"
+              )}
+              onClick={() => {
+                const path = mode === 'edit' ? `/editor/${bookId}/${chapter.id}` : `/read/${bookId}/${chapter.id}`;
+                setLocation(path);
+              }}
+            >
+              <span className="text-neutral-400 mr-2">{index + 1}.</span>
+              <span className="text-sm truncate">{chapter.title}</span>
+              {chapter.published && (
+                <span className="ml-auto inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  ✓
+                </span>
+              )}
+            </Button>
+          </div>
         ))}
         
         {chapters?.length === 0 && !isAddingChapter && (
           <div className="text-center py-3 text-sm text-muted-foreground">
-            Добавьте первую главу, чтобы начать писать
+            {mode === 'edit' && canEdit 
+              ? "Добавьте первую главу, чтобы начать писать" 
+              : "В этой книге пока нет глав"}
           </div>
         )}
       </div>

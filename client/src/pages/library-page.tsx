@@ -189,7 +189,13 @@ function BookCard({ book, isOwner, isNew, isPopular }: BookCardProps) {
           <span>{book.wordCount || 0} слов</span>
         </div>
         
-        <div className={cn("flex", isOwner ? "justify-between" : "justify-end")}>
+        <div className="flex justify-between gap-2">
+          <Button variant="default" size="sm" asChild>
+            <Link href={`/read/${book.id}`}>
+              Читать
+            </Link>
+          </Button>
+          
           {isOwner && (
             <Button variant="outline" size="sm" asChild>
               <Link href={`/editor/${book.id}`}>
@@ -197,12 +203,6 @@ function BookCard({ book, isOwner, isNew, isPopular }: BookCardProps) {
               </Link>
             </Button>
           )}
-          
-          <Button variant="default" size="sm" asChild>
-            <Link href={`/read/${book.id}`}>
-              Читать
-            </Link>
-          </Button>
         </div>
       </div>
     </div>

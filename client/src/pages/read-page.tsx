@@ -137,7 +137,11 @@ export default function ReadPage() {
         ) : (
           <div>
             <h2 className="text-xl font-bold mb-4">Оглавление</h2>
-            <ChapterList bookId={parseInt(bookId)} />
+            <ChapterList 
+              bookId={parseInt(bookId)} 
+              mode="read"
+              canEdit={false}
+            />
           </div>
         )}
       </main>

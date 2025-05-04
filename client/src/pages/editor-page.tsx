@@ -247,37 +247,96 @@ export default function EditorPage() {
                   <div className="container mx-auto p-6">
                     <h2 className="text-2xl font-bold mb-4">Структура книги</h2>
                     <p className="text-muted-foreground mb-6">
-                      Организуйте главы и разделы вашей книги
+                      Организуйте главы и создайте сюжетную линию вашей книги
                     </p>
                   </div>
                   <div className="container mx-auto px-6">
-                    <div className="w-full lg:w-1/2 mx-auto">
-                      <div className="bg-white rounded-md shadow-sm border border-neutral-200 p-4">
-                        <h3 className="text-lg font-medium mb-4">Содержание</h3>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      {/* Chapters Section */}
+                      <div className="bg-white rounded-md shadow-sm border border-neutral-200 p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-medium">Главы</h3>
+                          <p className="text-sm text-muted-foreground">Перетаскивайте главы для изменения порядка</p>
+                        </div>
+                        
                         {isLoadingChapters ? (
-                          <div className="flex items-center justify-center p-4">
+                          <div className="flex items-center justify-center p-8">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                           </div>
                         ) : (
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             {chapters && chapters.map((chapter, index) => (
                               <div 
                                 key={chapter.id} 
-                                className="flex items-center justify-between p-3 border rounded-md hover:bg-neutral-50"
+                                draggable={true}
+                                className="flex items-center justify-between p-3 border rounded-md hover:bg-neutral-50 cursor-move"
                               >
                                 <div className="flex items-center">
-                                  <span className="text-neutral-500 mr-2">{index + 1}.</span>
+                                  <span className="text-neutral-500 mr-2 w-6 text-center">{index + 1}.</span>
                                   <span>{chapter.title}</span>
                                 </div>
-                                <div className="flex items-center">
+                                <div className="flex items-center gap-2">
                                   {chapter.published && (
-                                    <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full mr-2">
+                                    <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full">
                                       Опубликовано
                                     </span>
                                   )}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setLocation(`/editor/${bookId}/${chapter.id}`)}
+                                  >
+                                    Редактировать
+                                  </Button>
                                 </div>
                               </div>
                             ))}
+                            
+                            {(!chapters || chapters.length === 0) && (
+                              <div className="text-center p-6 border border-dashed rounded-md">
+                                <p className="text-muted-foreground mb-4">Добавьте главы к вашей книге</p>
+                                <Button 
+                                  onClick={() => {
+                                    setLocation('/editor/' + bookId);
+                                  }}
+                                >
+                                  Добавить главу
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Events/Timeline Section */}
+                      <div className="bg-white rounded-md shadow-sm border border-neutral-200 p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-medium">Сюжетная линия</h3>
+                          <p className="text-sm text-muted-foreground">Основные события книги</p>
+                        </div>
+                        
+                        {isLoadingChapters ? (
+                          <div className="flex items-center justify-center p-8">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                          </div>
+                        ) : chapters && chapters.filter(c => c.summary).length > 0 ? (
+                          <div className="space-y-6">
+                            {chapters
+                              .filter(chapter => chapter.summary)
+                              .map((chapter, index) => (
+                                <div key={chapter.id} className="relative pl-6 border-l-2 border-primary">
+                                  <div className="absolute left-[-8px] top-0 w-4 h-4 rounded-full bg-primary"></div>
+                                  <h4 className="font-medium">{chapter.title}</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">{chapter.summary}</p>
+                                </div>
+                              ))
+                            }
+                          </div>
+                        ) : (
+                          <div className="text-center p-6 border border-dashed rounded-md">
+                            <p className="text-muted-foreground mb-4">
+                              Добавьте краткие описания событий в редакторе глав, чтобы построить сюжетную линию
+                            </p>
                           </div>
                         )}
                       </div>
