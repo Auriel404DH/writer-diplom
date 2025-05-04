@@ -24,13 +24,15 @@ export function ObjectCardPanel({ chapterId }: ObjectCardPanelProps) {
   // First, get the chapter to determine the book ID
   const { data: chapter, isLoading: isLoadingChapter } = useQuery<Chapter>({
     queryKey: [`/api/chapters/${chapterId}`],
-    enabled: !!chapterId,
-    onSuccess: (data) => {
-      if (data && data.bookId) {
-        setBookId(data.bookId);
-      }
-    }
+    enabled: !!chapterId
   });
+  
+  // Update bookId when chapter data is available
+  useEffect(() => {
+    if (chapter && chapter.bookId) {
+      setBookId(chapter.bookId);
+    }
+  }, [chapter]);
 
   // Then fetch all book cards
   const { data: cards, isLoading: isLoadingCards } = useQuery<ObjectCard[]>({

@@ -51,22 +51,8 @@ export function ChapterList({ bookId, currentChapterId, mode = 'edit', canEdit =
       });
     }
   });
-
-  const handleCreateChapter = () => {
-    if (newChapterTitle.trim()) {
-      createChapterMutation.mutate(newChapterTitle.trim());
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-20">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  // Add new mutation for reordering chapters
+  
+  // Add mutation for reordering chapters - moved before conditional return
   const reorderChaptersMutation = useMutation({
     mutationFn: async (chaptersOrder: number[]) => {
       return await apiRequest("PATCH", `/api/books/${bookId}/chapters/reorder`, { chaptersOrder });
@@ -86,6 +72,20 @@ export function ChapterList({ bookId, currentChapterId, mode = 'edit', canEdit =
       });
     }
   });
+
+  const handleCreateChapter = () => {
+    if (newChapterTitle.trim()) {
+      createChapterMutation.mutate(newChapterTitle.trim());
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-20">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
   
   const handleDragStart = (index: number) => {
     setDraggedIndex(index);
