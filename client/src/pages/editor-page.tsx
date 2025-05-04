@@ -214,32 +214,167 @@ export default function EditorPage() {
           </TabsContent>
           
           <TabsContent value="cards" className="flex-1 border-none p-0 mt-0">
-            <div className="container mx-auto p-6">
-              <h2 className="text-2xl font-bold mb-4">Все карточки объектов</h2>
-              <p className="text-muted-foreground mb-6">
-                Здесь будут отображаться все карточки объектов из вашей книги
-              </p>
-              {/* Card management UI would go here */}
+            <div className="flex flex-1">
+              {chapter ? (
+                <div className="flex flex-col w-full">
+                  <div className="container mx-auto p-6">
+                    <h2 className="text-2xl font-bold mb-4">Карточки объектов</h2>
+                    <p className="text-muted-foreground mb-6">
+                      Управляйте всеми карточками объектов из вашей книги
+                    </p>
+                  </div>
+                  <div className="flex-1 flex">
+                    <ObjectCardPanel chapterId={chapter.id} />
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center p-6">
+                    <h3 className="text-xl font-medium mb-2">Выберите главу</h3>
+                    <p className="text-muted-foreground">
+                      Выберите главу для управления карточками объектов
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </TabsContent>
           
           <TabsContent value="structure" className="flex-1 border-none p-0 mt-0">
-            <div className="container mx-auto p-6">
-              <h2 className="text-2xl font-bold mb-4">Структура книги</h2>
-              <p className="text-muted-foreground mb-6">
-                Здесь вы сможете организовать структуру глав и разделов вашей книги
-              </p>
-              {/* Structure management UI would go here */}
+            <div className="flex flex-1">
+              {book ? (
+                <div className="flex flex-col w-full">
+                  <div className="container mx-auto p-6">
+                    <h2 className="text-2xl font-bold mb-4">Структура книги</h2>
+                    <p className="text-muted-foreground mb-6">
+                      Организуйте главы и разделы вашей книги
+                    </p>
+                  </div>
+                  <div className="container mx-auto px-6">
+                    <div className="w-full lg:w-1/2 mx-auto">
+                      <div className="bg-white rounded-md shadow-sm border border-neutral-200 p-4">
+                        <h3 className="text-lg font-medium mb-4">Содержание</h3>
+                        {isLoadingChapters ? (
+                          <div className="flex items-center justify-center p-4">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {chapters && chapters.map((chapter, index) => (
+                              <div 
+                                key={chapter.id} 
+                                className="flex items-center justify-between p-3 border rounded-md hover:bg-neutral-50"
+                              >
+                                <div className="flex items-center">
+                                  <span className="text-neutral-500 mr-2">{index + 1}.</span>
+                                  <span>{chapter.title}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  {chapter.published && (
+                                    <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full mr-2">
+                                      Опубликовано
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center p-6">
+                    <h3 className="text-xl font-medium mb-2">Книга не найдена</h3>
+                    <p className="text-muted-foreground">
+                      Не удалось загрузить информацию о книге
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </TabsContent>
           
           <TabsContent value="settings" className="flex-1 border-none p-0 mt-0">
-            <div className="container mx-auto p-6">
-              <h2 className="text-2xl font-bold mb-4">Настройки книги</h2>
-              <p className="text-muted-foreground mb-6">
-                Здесь вы сможете настроить параметры книги, жанры и метаданные
-              </p>
-              {/* Settings UI would go here */}
+            <div className="flex flex-1">
+              {book ? (
+                <div className="flex flex-col w-full">
+                  <div className="container mx-auto p-6">
+                    <h2 className="text-2xl font-bold mb-4">Настройки книги</h2>
+                    <p className="text-muted-foreground mb-6">
+                      Настройте параметры вашей книги, жанры и метаданные
+                    </p>
+                  </div>
+                  <div className="container mx-auto px-6">
+                    <div className="w-full lg:w-1/2 mx-auto">
+                      <div className="bg-white rounded-md shadow-sm border border-neutral-200 p-6">
+                        <form className="space-y-6">
+                          <div>
+                            <label htmlFor="title" className="block text-sm font-medium text-neutral-700 mb-1">
+                              Название книги
+                            </label>
+                            <Input
+                              id="title"
+                              value={bookTitle}
+                              onChange={handleTitleChange}
+                              className="w-full"
+                            />
+                          </div>
+                          
+                          <div>
+                            <label htmlFor="description" className="block text-sm font-medium text-neutral-700 mb-1">
+                              Описание
+                            </label>
+                            <textarea
+                              id="description"
+                              rows={4}
+                              className="w-full rounded-md border border-neutral-300 shadow-sm px-3 py-2 text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              defaultValue={book.description || ''}
+                            ></textarea>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-neutral-700 mb-1">
+                              Статус публикации
+                            </label>
+                            <div className="mt-1 flex items-center">
+                              {book.published ? (
+                                <span className="inline-flex items-center px-3 py-1 text-sm font-medium text-green-700 bg-green-100 rounded-full">
+                                  Опубликовано
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-3 py-1 text-sm font-medium text-amber-700 bg-amber-100 rounded-full">
+                                  Черновик
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="pt-2">
+                            <Button type="button" onClick={handleTitleSave} disabled={updateBookTitleMutation.isPending}>
+                              {updateBookTitleMutation.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                              ) : null}
+                              Сохранить изменения
+                            </Button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center p-6">
+                    <h3 className="text-xl font-medium mb-2">Книга не найдена</h3>
+                    <p className="text-muted-foreground">
+                      Не удалось загрузить информацию о книге
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>

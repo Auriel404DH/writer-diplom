@@ -22,7 +22,12 @@ export function WritingEnvironment({ chapter, className = '' }: WritingEnvironme
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    // Reset content when chapter changes
     setContent(chapter.content || '');
+    // Reset editor content directly
+    if (editorRef.current) {
+      editorRef.current.setContent(chapter.content || '');
+    }
   }, [chapter.id, chapter.content]);
 
   useEffect(() => {

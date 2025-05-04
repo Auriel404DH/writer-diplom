@@ -19,6 +19,7 @@ export interface TiptapEditorRef {
   getEditor: () => Editor | null;
   getHTML: () => string;
   getContent: () => string;
+  setContent: (content: string) => void;
 }
 
 export const TiptapEditor = forwardRef<TiptapEditorRef, TiptapEditorProps>(
@@ -49,6 +50,9 @@ export const TiptapEditor = forwardRef<TiptapEditorRef, TiptapEditorProps>(
       getEditor: () => editor,
       getHTML: () => editor?.getHTML() || '',
       getContent: () => editor?.getText() || '',
+      setContent: (content: string) => {
+        editor?.commands.setContent(content);
+      },
     }));
 
     return (
