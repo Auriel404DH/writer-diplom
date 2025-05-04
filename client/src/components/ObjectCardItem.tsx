@@ -1,11 +1,11 @@
-import { ObjectCard, cardTypesMap } from '@shared/types';
+import { ObjectCard, cardTypesMap, Chapter } from '@shared/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { PencilIcon, Trash2Icon } from 'lucide-react';
+import { PencilIcon, Trash2Icon, BookOpenIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { 
   AlertDialog,
   AlertDialogAction,
