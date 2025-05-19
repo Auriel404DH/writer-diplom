@@ -18,11 +18,11 @@ export default function ReadPage() {
   const { toast } = useToast();
 
   const { data: book, isLoading: isLoadingBook } = useQuery<BookType>({
-    queryKey: [`/api/books/${bookId}`],
+    queryKey: [`/api/works/${bookId}`],
   });
 
   const { data: chapter, isLoading: isLoadingChapter } = useQuery<Chapter>({
-    queryKey: [`/api/chapters/${chapterId}`],
+    queryKey: [`/api/works/chapters/${chapterId}`],
     enabled: !!chapterId,
   });
 

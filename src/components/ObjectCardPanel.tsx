@@ -23,7 +23,7 @@ export function ObjectCardPanel({ chapterId }: ObjectCardPanelProps) {
 
   // First, get the chapter to determine the book ID
   const { data: chapter, isLoading: isLoadingChapter } = useQuery<Chapter>({
-    queryKey: [`/api/chapters/${chapterId}`],
+    queryKey: [`/api/works/chapters/${chapterId}`],
     enabled: !!chapterId,
   });
 
@@ -36,7 +36,7 @@ export function ObjectCardPanel({ chapterId }: ObjectCardPanelProps) {
 
   // Then fetch all book cards
   const { data: cards, isLoading: isLoadingCards } = useQuery<ObjectCard[]>({
-    queryKey: [`/api/books/${bookId}/cards`],
+    queryKey: [`/api/cards/${bookId}/cards`],
     enabled: !!bookId,
   });
 

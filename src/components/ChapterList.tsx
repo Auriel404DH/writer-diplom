@@ -29,13 +29,13 @@ export function ChapterList({
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const { data: chapters, isLoading } = useQuery<Chapter[]>({
-    queryKey: [`/api/books/${bookId}/chapters`],
+    queryKey: [`/api/works/${bookId}/chapters`],
     enabled: !!bookId,
   });
 
   const createChapterMutation = useMutation({
     mutationFn: async (title: string) => {
-      const res = await apiRequest("POST", `/api/books/${bookId}/chapters`, {
+      const res = await apiRequest("POST", `/api/works/${bookId}/chapters`, {
         title,
       });
       return res.json();
@@ -66,7 +66,7 @@ export function ChapterList({
     mutationFn: async (chaptersOrder: number[]) => {
       return await apiRequest(
         "PATCH",
-        `/api/books/${bookId}/chapters/reorder`,
+        `/api/works/${bookId}/chapters/reorder`,
         { chaptersOrder },
       );
     },

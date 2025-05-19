@@ -45,7 +45,7 @@ export function WritingEnvironment({
 
   const saveChapterMutation = useMutation({
     mutationFn: async (updatedContent: string) => {
-      return await apiRequest("PATCH", `/api/chapters/${chapter.id}`, {
+      return await apiRequest("PATCH", `/api/cards/chapters/${chapter.id}`, {
         content: updatedContent,
       });
     },
@@ -68,9 +68,13 @@ export function WritingEnvironment({
 
   const publishChapterMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("PATCH", `/api/chapters/${chapter.id}/publish`, {
-        published: true,
-      });
+      return await apiRequest(
+        "PATCH",
+        `/api/cards/chapters/${chapter.id}/publish`,
+        {
+          published: true,
+        },
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

@@ -17,12 +17,12 @@ export function SidebarNav({ currentBookId }: { currentBookId?: number }) {
   const [isAddingBook, setIsAddingBook] = useState(false);
 
   const { data: books, isLoading } = useQuery<Book[]>({
-    queryKey: ["/api/books"],
+    queryKey: ["/api/works"],
   });
 
   const createBookMutation = useMutation({
     mutationFn: async (title: string) => {
-      const res = await apiRequest("POST", "/api/books", { title });
+      const res = await apiRequest("POST", "/api/works", { title });
       return res.json();
     },
     onSuccess: () => {

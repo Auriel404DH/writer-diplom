@@ -83,18 +83,18 @@ export function NewCardModal({
 
   // If we have a bookId, get all chapters for that book
   const { data: bookChapters = [] } = useQuery({
-    queryKey: [`/api/books/${bookId}/chapters`],
+    queryKey: [`/api/works/${bookId}/chapters`],
     enabled: !!bookId,
   });
 
   // Fallback to all user chapters if no bookId is provided
-  const { data: allChapters = [] } = useQuery({
-    queryKey: ["/api/chapters"],
-    enabled: !bookId,
-  });
+  // const { data: allChapters = [] } = useQuery({
+  //   queryKey: ["/api/chapters"],
+  //   enabled: !bookId,
+  // });
 
   // Use book chapters if available, otherwise use all chapters
-  const chapters = bookId ? bookChapters : allChapters;
+  const chapters = bookChapters;
 
   useEffect(() => {
     if (editCard) {

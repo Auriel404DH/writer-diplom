@@ -26,17 +26,17 @@ export default function EditorPage() {
   const chapterIdNum = chapterId ? parseInt(chapterId) : undefined;
 
   const { data: book, isLoading: isLoadingBook } = useQuery<Book>({
-    queryKey: [`/api/books/${bookIdNum}`],
+    queryKey: [`/api/works/${bookIdNum}`],
     enabled: !!bookIdNum,
   });
 
   const { data: chapter, isLoading: isLoadingChapter } = useQuery<Chapter>({
-    queryKey: [`/api/chapters/${chapterIdNum}`],
+    queryKey: [`/api/works/chapters/${chapterIdNum}`],
     enabled: !!chapterIdNum,
   });
 
   const { data: chapters, isLoading: isLoadingChapters } = useQuery<Chapter[]>({
-    queryKey: [`/api/books/${bookIdNum}/chapters`],
+    queryKey: [`/api/works/${bookIdNum}/chapters`],
     enabled: !!bookIdNum,
   });
 
@@ -54,7 +54,7 @@ export default function EditorPage() {
 
   const updateBookTitleMutation = useMutation({
     mutationFn: async (title: string) => {
-      await apiRequest("PATCH", `/api/books/${bookIdNum}`, { title });
+      await apiRequest("PATCH", `/api/works/${bookIdNum}`, { title });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/books/${bookIdNum}`] });

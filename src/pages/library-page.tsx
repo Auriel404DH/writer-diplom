@@ -16,7 +16,7 @@ export default function LibraryPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: books, isLoading } = useQuery<Book[]>({
-    queryKey: ["/api/books/public"],
+    queryKey: ["/api/works/published"],
   });
 
   const filteredBooks = books?.filter(

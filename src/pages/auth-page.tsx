@@ -43,7 +43,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -66,17 +66,31 @@ export default function AuthPage() {
   });
 
   const onLoginSubmit = (values: LoginFormValues) => {
-    loginMutation.mutate({
-      username: values.username,
-      password: values.password,
-    });
+    loginMutation.mutate(
+      {
+        username: values.username,
+        password: values.password,
+      },
+      {
+        onSuccess: () => {
+          setLocation("/");
+        },
+      },
+    );
   };
 
   const onRegisterSubmit = (values: RegisterFormValues) => {
-    registerMutation.mutate({
-      username: values.username,
-      password: values.password,
-    });
+    registerMutation.mutate(
+      {
+        username: values.username,
+        password: values.password,
+      },
+      {
+        onSuccess: () => {
+          setLocation("/login");
+        },
+      },
+    );
   };
 
   if (user) {

@@ -27,17 +27,6 @@ export function ObjectCardItem({ card, onEdit }: ObjectCardItemProps) {
   const { toast } = useToast();
   const cardType = cardTypesMap[card.type];
 
-  // Fetch chapters for this card
-  const { data: bookChapters } = useQuery<Chapter[]>({
-    queryKey: [
-      `/api/books/${
-        card.chapterIds?.[0] ? `chapter-${card.chapterIds[0]}-book` : null
-      }/chapters`,
-    ],
-    // We'll only fetch if the card has at least one chapter ID and we can use it to find the book ID
-    enabled: !!(card.chapterIds && card.chapterIds.length > 0),
-  });
-
   const deleteCardMutation = useMutation({
     mutationFn: async (cardId: number) => {
       await apiRequest("DELETE", `/api/cards/${cardId}`);

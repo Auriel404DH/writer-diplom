@@ -25,12 +25,12 @@ export default function HomePage() {
   const { toast } = useToast();
 
   const { data: books, isLoading } = useQuery<Book[]>({
-    queryKey: ["/api/books"],
+    queryKey: ["/api/works"],
   });
 
   const createBookMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/books", {
+      const res = await apiRequest("POST", "/api/works", {
         title: "Новая книга",
       });
       return res.json();
