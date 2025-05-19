@@ -1,17 +1,45 @@
-import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
-import HomePage from "./pages/HomePage";
+import { Switch, Route } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import NotFound from "@/pages/not-found";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/lib/protected-route";
+import HomePage from "@/pages/home-page";
+import AuthPage from "@/pages/auth-page";
+import EditorPage from "@/pages/editor-page";
+import LibraryPage from "@/pages/library-page";
+import ReadPage from "@/pages/read-page";
+import { ThemeProvider } from "@/lib/theme-provider";
+import "./index.css";
 
-const App: React.FC = () => {
+function Router() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
-      </Routes>
-    </Router>
+    <Switch>
+      <ProtectedRoute path="/" component={HomePage} />
+      <ProtectedRoute
+        path="/editor/:bookId/:chapterId?"
+        component={EditorPage}
+      />
+      <ProtectedRoute path="/library" component={LibraryPage} />
+      <Route path="/read/:bookId/:chapterId?" component={ReadPage} />
+      <Route path="/auth" component={AuthPage} />
+      <Route component={NotFound} />
+    </Switch>
   );
-};
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <Router />
+          <Toaster />
+        </AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
+}
 
 export default App;
