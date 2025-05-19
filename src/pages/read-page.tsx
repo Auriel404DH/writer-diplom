@@ -7,13 +7,16 @@ import { formatDate } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { ChapterList } from "@/components/ChapterList";
-import { Book as BookType, Chapter } from "@shared/types";
+import { Book as BookType, Chapter } from "@/shared/types";
 
 export default function ReadPage() {
-  const { bookId, chapterId } = useParams<{ bookId: string; chapterId?: string }>();
+  const { bookId, chapterId } = useParams<{
+    bookId: string;
+    chapterId?: string;
+  }>();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  
+
   const { data: book, isLoading: isLoadingBook } = useQuery<BookType>({
     queryKey: [`/api/books/${bookId}`],
   });
@@ -47,8 +50,12 @@ export default function ReadPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <h2 className="text-2xl font-bold mb-4">Книга не найдена</h2>
-        <p className="text-neutral-600 mb-6">Запрошенная книга не существует или не опубликована.</p>
-        <Button onClick={() => setLocation("/library")}>Вернуться в библиотеку</Button>
+        <p className="text-neutral-600 mb-6">
+          Запрошенная книга не существует или не опубликована.
+        </p>
+        <Button onClick={() => setLocation("/library")}>
+          Вернуться в библиотеку
+        </Button>
       </div>
     );
   }
@@ -57,8 +64,12 @@ export default function ReadPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <h2 className="text-2xl font-bold mb-4">Книга не опубликована</h2>
-        <p className="text-neutral-600 mb-6">Эта книга ещё не опубликована автором.</p>
-        <Button onClick={() => setLocation("/library")}>Вернуться в библиотеку</Button>
+        <p className="text-neutral-600 mb-6">
+          Эта книга ещё не опубликована автором.
+        </p>
+        <Button onClick={() => setLocation("/library")}>
+          Вернуться в библиотеку
+        </Button>
       </div>
     );
   }
@@ -70,7 +81,9 @@ export default function ReadPage() {
           <Button
             variant="ghost"
             className="mb-4"
-            onClick={() => setLocation(chapterId ? `/read/${bookId}` : "/library")}
+            onClick={() =>
+              setLocation(chapterId ? `/read/${bookId}` : "/library")
+            }
           >
             <ChevronLeft className="h-4 w-4 mr-2" />
             {chapterId ? "К оглавлению" : "К библиотеке"}
@@ -111,7 +124,9 @@ export default function ReadPage() {
             </div>
           </div>
 
-          {book.description && <p className="mt-2 text-neutral-600">{book.description}</p>}
+          {book.description && (
+            <p className="mt-2 text-neutral-600">{book.description}</p>
+          )}
         </div>
       </header>
 
@@ -128,8 +143,13 @@ export default function ReadPage() {
           ) : (
             <div className="text-center py-12">
               <h2 className="text-xl font-bold">Глава не найдена</h2>
-              <p className="text-neutral-600 mt-2">Запрошенная глава не существует или не опубликована.</p>
-              <Button onClick={() => setLocation(`/read/${bookId}`)} className="mt-4">
+              <p className="text-neutral-600 mt-2">
+                Запрошенная глава не существует или не опубликована.
+              </p>
+              <Button
+                onClick={() => setLocation(`/read/${bookId}`)}
+                className="mt-4"
+              >
                 К оглавлению
               </Button>
             </div>
@@ -137,8 +157,8 @@ export default function ReadPage() {
         ) : (
           <div>
             <h2 className="text-xl font-bold mb-4">Оглавление</h2>
-            <ChapterList 
-              bookId={parseInt(bookId)} 
+            <ChapterList
+              bookId={parseInt(bookId)}
               mode="read"
               canEdit={false}
             />
