@@ -1,11 +1,11 @@
 import { ObjectCard, cardTypesMap, Chapter } from "@/shared/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { PencilIcon, Trash2Icon, BookOpenIcon } from "lucide-react";
+import { PencilIcon, Trash2Icon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,18 +21,31 @@ import {
 interface ObjectCardItemProps {
   card: ObjectCard;
   onEdit: (card: ObjectCard) => void;
+  chapters?: Chapter[];
+  bookId: string;
 }
 
-export function ObjectCardItem({ card, onEdit }: ObjectCardItemProps) {
+export function ObjectCardItem({
+  card,
+  onEdit,
+  chapters = [],
+  bookId,
+}: ObjectCardItemProps) {
   const { toast } = useToast();
   const cardType = cardTypesMap[card.type];
+
+  const relatedChapters = chapters.filter((chapter) =>
+    card.chapterIds?.includes(chapter.id),
+  );
 
   const deleteCardMutation = useMutation({
     mutationFn: async (cardId: number) => {
       await apiRequest("DELETE", `/api/cards/${cardId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/cards"] });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/cards/${bookId}/cards`],
+      });
       toast({
         title: "Карточка удалена",
         description: "Карточка объекта успешно удалена",
@@ -72,6 +85,7 @@ export function ObjectCardItem({ card, onEdit }: ObjectCardItemProps) {
             variant="ghost"
             className="h-8 w-8 p-0"
             onClick={() => onEdit(card)}
+            aria-label="Редактировать карточку"
           >
             <PencilIcon className="h-4 w-4" />
           </Button>
@@ -81,6 +95,7 @@ export function ObjectCardItem({ card, onEdit }: ObjectCardItemProps) {
                 size="sm"
                 variant="ghost"
                 className="h-8 w-8 p-0 text-destructive hover:text-destructive/80"
+                aria-label="Удалить карточку"
               >
                 <Trash2Icon className="h-4 w-4" />
               </Button>
@@ -113,7 +128,6 @@ export function ObjectCardItem({ card, onEdit }: ObjectCardItemProps) {
           <div className="grid gap-1">
             {(() => {
               try {
-                // Try to parse the description as JSON
                 if (
                   card.description &&
                   card.description.trim().startsWith("[")
@@ -129,7 +143,6 @@ export function ObjectCardItem({ card, onEdit }: ObjectCardItemProps) {
                   );
                 }
 
-                // Fallback to displaying as key-value pairs if possible
                 const lines = card.description
                   .split("\n")
                   .filter((line) => line.includes(":"));
@@ -147,7 +160,6 @@ export function ObjectCardItem({ card, onEdit }: ObjectCardItemProps) {
                   });
                 }
 
-                // If all else fails, just show the description
                 return <p className="text-sm">{card.description}</p>;
               } catch (e) {
                 return <p className="text-sm">{card.description}</p>;
@@ -166,6 +178,19 @@ export function ObjectCardItem({ card, onEdit }: ObjectCardItemProps) {
                   {tag}
                 </Badge>
               ))}
+            </div>
+          )}
+
+          {relatedChapters.length > 0 && (
+            <div className="mt-3 text-xs text-neutral-500">
+              <strong>Используется в главах:</strong>
+              <ul className="mt-1 max-h-20 overflow-y-auto list-disc list-inside space-y-0.5">
+                {relatedChapters.map((ch) => (
+                  <li key={ch.id} className="truncate" title={ch.title}>
+                    {ch.title}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>

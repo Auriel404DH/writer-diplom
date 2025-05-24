@@ -18,20 +18,18 @@ export function WritingEnvironment({
 }: WritingEnvironmentProps) {
   const editorRef = useRef<TiptapEditorRef>(null);
   const { toast } = useToast();
-  const [content, setContent] = useState(chapter.content || "");
+  const [content, setContent] = useState(chapter.text || "");
   const [theme, setTheme] = useState("writing-theme-1");
   const [wordCount, setWordCount] = useState(0);
   const [readingTime, setReadingTime] = useState(0);
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Reset content when chapter changes
-    setContent(chapter.content || "");
-    // Reset editor content directly
+    setContent(chapter.text || "");
     if (editorRef.current) {
-      editorRef.current.setContent(chapter.content || "");
+      editorRef.current.setContent(chapter.text || "");
     }
-  }, [chapter.id, chapter.content]);
+  }, [chapter.id, chapter.text]);
 
   useEffect(() => {
     if (content) {
@@ -51,10 +49,13 @@ export function WritingEnvironment({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [`/api/books/${chapter.bookId}/chapters`],
+        queryKey: [`/api/works/chapters/${chapter.id}`],
       });
       queryClient.invalidateQueries({
-        queryKey: [`/api/chapters/${chapter.id}`],
+        queryKey: [`/api/works/${chapter.bookId}/chapters`],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/works/${chapter.bookId}`],
       });
     },
     onError: (error: Error) => {
@@ -134,7 +135,7 @@ export function WritingEnvironment({
   return (
     <div className={cn("flex-1 flex flex-col", theme, className)}>
       <div className="flex-1 overflow-auto">
-        <div className="max-w-3xl mx-auto px-6 py-8">
+        <div className="max-w-7xl mx-auto px-6 py-8">
           <h1 className="text-3xl font-serif font-semibold mb-6">
             {chapter.title}
           </h1>

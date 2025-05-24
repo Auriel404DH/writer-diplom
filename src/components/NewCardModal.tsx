@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ObjectCard, cardTypesMap, cardTypes } from "@/shared/types";
+import { ObjectCard, cardTypes } from "@/shared/types";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -63,7 +63,7 @@ interface NewCardModalProps {
   open: boolean;
   onClose: () => void;
   chapterId: number;
-  bookId?: number;
+  bookId?: number | string;
   editCard?: ObjectCard | null;
 }
 
@@ -81,19 +81,11 @@ export function NewCardModal({
   const [tags, setTags] = useState("");
   const [selectedChapterIds, setSelectedChapterIds] = useState<number[]>([]);
 
-  // If we have a bookId, get all chapters for that book
   const { data: bookChapters = [] } = useQuery({
     queryKey: [`/api/works/${bookId}/chapters`],
     enabled: !!bookId,
   });
 
-  // Fallback to all user chapters if no bookId is provided
-  // const { data: allChapters = [] } = useQuery({
-  //   queryKey: ["/api/chapters"],
-  //   enabled: !bookId,
-  // });
-
-  // Use book chapters if available, otherwise use all chapters
   const chapters = bookChapters;
 
   useEffect(() => {
@@ -101,7 +93,6 @@ export function NewCardModal({
       setCardType(editCard.type);
       setTitle(editCard.title);
 
-      // Parse description into fields
       const parsedFields = parseCardFields(editCard.description);
       setFields(
         parsedFields.length > 0 ? parsedFields : [{ key: "", value: "" }],
@@ -133,7 +124,7 @@ export function NewCardModal({
       // Invalidate both chapter-specific and book-wide card queries
       if (bookId) {
         queryClient.invalidateQueries({
-          queryKey: [`/api/books/${bookId}/cards`],
+          queryKey: [`/api/cards/${bookId}/cards`],
         });
       }
       queryClient.invalidateQueries({
@@ -174,7 +165,7 @@ export function NewCardModal({
       // Invalidate both chapter-specific and book-wide card queries
       if (bookId) {
         queryClient.invalidateQueries({
-          queryKey: [`/api/books/${bookId}/cards`],
+          queryKey: [`/api/cards/${bookId}/cards`],
         });
       }
       queryClient.invalidateQueries({

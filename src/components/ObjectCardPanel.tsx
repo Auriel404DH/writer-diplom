@@ -12,35 +12,25 @@ import { Loader2 } from "lucide-react";
 
 interface ObjectCardPanelProps {
   chapterId: number;
+  bookId: string;
+  chapters?: Chapter[];
 }
 
-export function ObjectCardPanel({ chapterId }: ObjectCardPanelProps) {
+export function ObjectCardPanel({
+  chapterId,
+  bookId,
+  chapters,
+}: ObjectCardPanelProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<ObjectCard | null>(null);
   const [filterType, setFilterType] = useState<string | null>(null);
-  const [bookId, setBookId] = useState<number | null>(null);
 
-  // First, get the chapter to determine the book ID
-  const { data: chapter, isLoading: isLoadingChapter } = useQuery<Chapter>({
-    queryKey: [`/api/works/chapters/${chapterId}`],
-    enabled: !!chapterId,
-  });
-
-  // Update bookId when chapter data is available
-  useEffect(() => {
-    if (chapter && chapter.bookId) {
-      setBookId(chapter.bookId);
-    }
-  }, [chapter]);
-
-  // Then fetch all book cards
   const { data: cards, isLoading: isLoadingCards } = useQuery<ObjectCard[]>({
     queryKey: [`/api/cards/${bookId}/cards`],
     enabled: !!bookId,
   });
 
-  // Use all book cards instead of filtering by chapter
   const filteredCards = cards?.filter((card) => {
     const matchesSearch =
       !searchQuery ||
@@ -66,7 +56,7 @@ export function ObjectCardPanel({ chapterId }: ObjectCardPanelProps) {
     setEditingCard(null);
   };
 
-  const isLoading = isLoadingChapter || isLoadingCards;
+  const isLoading = isLoadingCards;
 
   return (
     <div className="w-full lg:w-80 h-full border-l border-neutral-200 bg-white overflow-y-auto">
@@ -88,7 +78,7 @@ export function ObjectCardPanel({ chapterId }: ObjectCardPanelProps) {
           <Search className="absolute left-2.5 top-2.5 text-neutral-400 h-4 w-4" />
         </div>
 
-        <div className="flex mt-3 space-x-1">
+        <div className="flex mt-3 space-x-1 flex-wrap">
           <Button
             variant="ghost"
             size="sm"
@@ -102,7 +92,6 @@ export function ObjectCardPanel({ chapterId }: ObjectCardPanelProps) {
           >
             Все
           </Button>
-
           {cardTypes.map((type) => (
             <Button
               key={type.id}
@@ -133,7 +122,9 @@ export function ObjectCardPanel({ chapterId }: ObjectCardPanelProps) {
               <ObjectCardItem
                 key={card.id}
                 card={card}
+                bookId={bookId}
                 onEdit={handleEditCard}
+                chapters={chapters}
               />
             ))}
 
@@ -161,7 +152,7 @@ export function ObjectCardPanel({ chapterId }: ObjectCardPanelProps) {
         open={isModalOpen}
         onClose={handleCloseModal}
         chapterId={chapterId}
-        bookId={bookId || undefined}
+        bookId={bookId}
         editCard={editingCard}
       />
     </div>

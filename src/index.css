@@ -4,6 +4,20 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .editor-content div[contenteditable]:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    height: 100%;
+  }
+
+  .editor-content div[contenteditable] {
+    outline: none !important;
+    box-shadow: none !important;
+    height: 100%;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Book, Calendar, Eye } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+
 import { Separator } from "@/components/ui/separator";
 import { ChapterList } from "@/components/ChapterList";
 import { Book as BookType, Chapter } from "@/shared/types";
@@ -15,7 +15,6 @@ export default function ReadPage() {
     chapterId?: string;
   }>();
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
 
   const { data: book, isLoading: isLoadingBook } = useQuery<BookType>({
     queryKey: [`/api/works/${bookId}`],
@@ -95,7 +94,7 @@ export default function ReadPage() {
               <div className="flex items-center mt-1 text-sm text-neutral-500">
                 <div className="flex items-center mr-4">
                   <Book className="h-4 w-4 mr-1" />
-                  <span>{book.authorName || "Автор"}</span>
+                  <span>{book.author || "Автор"}</span>
                 </div>
                 {book.publishedAt && (
                   <div className="flex items-center mr-4">
@@ -137,7 +136,7 @@ export default function ReadPage() {
               <h2 className="text-xl font-bold mb-4">{chapter.title}</h2>
               <Separator className="mb-6" />
               <div className="prose prose-neutral max-w-none">
-                <div dangerouslySetInnerHTML={{ __html: chapter.content }} />
+                <div dangerouslySetInnerHTML={{ __html: chapter.text }} />
               </div>
             </div>
           ) : (
@@ -157,11 +156,7 @@ export default function ReadPage() {
         ) : (
           <div>
             <h2 className="text-xl font-bold mb-4">Оглавление</h2>
-            <ChapterList
-              bookId={parseInt(bookId)}
-              mode="read"
-              canEdit={false}
-            />
+            <ChapterList bookId={bookId} mode="read" canEdit={false} />
           </div>
         )}
       </main>

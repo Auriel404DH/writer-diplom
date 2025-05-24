@@ -23,7 +23,7 @@ export default function LibraryPage() {
     (book) =>
       !searchQuery ||
       book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.authorName?.toLowerCase().includes(searchQuery.toLowerCase()),
+      book.author?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -61,7 +61,7 @@ export default function LibraryPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredBooks.map((book) => (
                   <BookCard
-                    key={book.id}
+                    key={book._id}
                     book={book}
                     isOwner={book.authorId === user?.id}
                   />
@@ -96,7 +96,7 @@ export default function LibraryPage() {
                   .slice(0, 6)
                   .map((book) => (
                     <BookCard
-                      key={book.id}
+                      key={book._id}
                       book={book}
                       isOwner={book.authorId === user?.id}
                       isNew
@@ -128,7 +128,7 @@ export default function LibraryPage() {
                   .slice(0, 6)
                   .map((book) => (
                     <BookCard
-                      key={book.id}
+                      key={book._id}
                       book={book}
                       isOwner={book.authorId === user?.id}
                       isPopular
@@ -177,7 +177,7 @@ function BookCard({ book, isOwner, isNew, isPopular }: BookCardProps) {
 
         <div className="flex items-center mt-2 text-sm text-muted-foreground">
           <User className="h-3 w-3 mr-1" />
-          <span>{book.authorName || "Неизвестный автор"}</span>
+          <span>{book.author || "Неизвестный автор"}</span>
         </div>
       </div>
 
@@ -214,21 +214,13 @@ function BookCard({ book, isOwner, isNew, isPopular }: BookCardProps) {
             Опубликовано: {formatDate(book.publishedAt || book.createdAt)}
           </span>
           <span className="mx-2">•</span>
-          <span>{book.chapterCount || 0} глав</span>
-          <span className="mx-2">•</span>
-          <span>{book.wordCount || 0} слов</span>
+          <span>{book.chapters.length || 0} главы</span>
         </div>
 
         <div className="flex justify-between gap-2">
           <Button variant="default" size="sm" asChild>
-            <Link href={`/read/${book.id}`}>Читать</Link>
+            <Link href={`/read/${book._id}`}>Читать</Link>
           </Button>
-
-          {isOwner && (
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`/editor/${book.id}`}>Редактировать</Link>
-            </Button>
-          )}
         </div>
       </div>
     </div>

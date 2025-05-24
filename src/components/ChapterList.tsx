@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
 
 interface ChapterListProps {
-  bookId: number;
-  currentChapterId?: number;
+  bookId: number | string;
+  currentChapterId?: number | string;
   mode?: "read" | "edit";
   canEdit?: boolean;
 }
@@ -42,7 +42,7 @@ export function ChapterList({
     },
     onSuccess: (newChapter) => {
       queryClient.invalidateQueries({
-        queryKey: [`/api/books/${bookId}/chapters`],
+        queryKey: [`/api/works/${bookId}/chapters`],
       });
       setNewChapterTitle("");
       setIsAddingChapter(false);

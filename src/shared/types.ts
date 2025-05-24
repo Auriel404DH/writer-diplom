@@ -5,9 +5,9 @@ export interface User {
 }
 
 export interface Book {
-  id: number;
+  _id: number;
   authorId: number;
-  authorName?: string;
+  author?: string;
   title: string;
   description?: string | null;
   published: boolean;
@@ -16,6 +16,7 @@ export interface Book {
   chapterCount: number;
   viewCount?: number;
   reviewCount?: number;
+  chapters: Chapter[];
   genres?: string[];
   createdAt: string | Date;
   updatedAt: string | Date;
@@ -26,7 +27,7 @@ export interface Chapter {
   id: number;
   bookId: number;
   title: string;
-  content: string;
+  text: string;
   summary?: string | null;
   published: boolean;
   createdAt: string | Date;

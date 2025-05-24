@@ -13,7 +13,13 @@ import {
 } from "@/components/ui/card";
 import { Book } from "@/shared/types";
 import { useQuery } from "@tanstack/react-query";
-import { PlusIcon, BookOpenIcon, LayoutList, Loader2 } from "lucide-react";
+import {
+  PlusIcon,
+  BookOpenIcon,
+  LayoutList,
+  Loader2,
+  Upload,
+} from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -41,7 +47,7 @@ export default function HomePage() {
         title: "Книга создана",
         description: "Новая книга успешно создана",
       });
-      setLocation(`/editor/${newBook.id}`);
+      setLocation(`/editor/${newBook._id}`);
     },
     onError: (error: Error) => {
       toast({
@@ -93,34 +99,34 @@ export default function HomePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {books.map((book) => (
                   <Card
-                    key={book.id}
+                    key={book._id}
                     className="overflow-hidden hover:shadow-md transition-shadow"
                   >
                     <CardHeader className="pb-2">
                       <CardTitle className="text-xl">{book.title}</CardTitle>
                       <CardDescription>
                         Создано: {formatDate(book.createdAt)}
-                        {book.published ? " • Опубликовано" : " • Черновик"}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="pb-2">
                       <p className="text-muted-foreground text-sm">
-                        {book.chapterCount || 0} глав • {book.wordCount || 0}{" "}
-                        слов
+                        {book.chapters.length || 0} главы{" "}
+                        {book.published ? " • Опубликовано" : " • Черновик"}
                       </p>
                     </CardContent>
                     <CardFooter className="flex justify-between pt-2">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/editor/${book.id}`}>
-                          <LayoutList className="mr-2 h-4 w-4" />
-                          Редактировать
-                        </Link>
-                      </Button>
-                      {book.published && (
+                      {book.published ? (
                         <Button variant="secondary" size="sm" asChild>
-                          <Link href={`/library/${book.id}`}>
+                          <Link href={`/read/${book._id}`}>
                             <BookOpenIcon className="mr-2 h-4 w-4" />
                             Читать
+                          </Link>
+                        </Button>
+                      ) : (
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/editor/${book._id}`}>
+                            <LayoutList className="mr-2 h-4 w-4" />
+                            Редактировать
                           </Link>
                         </Button>
                       )}
@@ -156,7 +162,7 @@ export default function HomePage() {
                   .filter((book) => book.published)
                   .map((book) => (
                     <Card
-                      key={book.id}
+                      key={book._id}
                       className="overflow-hidden hover:shadow-md transition-shadow"
                     >
                       <CardHeader className="pb-2">
@@ -172,23 +178,25 @@ export default function HomePage() {
                       </CardHeader>
                       <CardContent className="pb-2">
                         <p className="text-muted-foreground text-sm">
-                          {book.chapterCount || 0} глав • {book.wordCount || 0}{" "}
-                          слов
+                          {book.chapters.length || 0} главы
                         </p>
                       </CardContent>
                       <CardFooter className="flex justify-between pt-2">
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/editor/${book.id}`}>
-                            <LayoutList className="mr-2 h-4 w-4" />
-                            Редактировать
-                          </Link>
-                        </Button>
-                        <Button variant="secondary" size="sm" asChild>
-                          <Link href={`/library/${book.id}`}>
-                            <BookOpenIcon className="mr-2 h-4 w-4" />
-                            Читать
-                          </Link>
-                        </Button>
+                        {book.published ? (
+                          <Button variant="secondary" size="sm" asChild>
+                            <Link href={`/read/${book._id}`}>
+                              <BookOpenIcon className="mr-2 h-4 w-4" />
+                              Читать
+                            </Link>
+                          </Button>
+                        ) : (
+                          <Button variant="outline" size="sm" asChild>
+                            <Link href={`/editor/${book._id}`}>
+                              <LayoutList className="mr-2 h-4 w-4" />
+                              Редактировать
+                            </Link>
+                          </Button>
+                        )}
                       </CardFooter>
                     </Card>
                   ))}

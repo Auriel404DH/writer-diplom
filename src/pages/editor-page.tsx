@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { AppHeader } from "@/components/AppHeader";
-import { SidebarNav } from "@/components/SidebarNav";
 import { ChapterList } from "@/components/ChapterList";
 import { WritingEnvironment } from "@/components/WritingEnvironment";
 import { ObjectCardPanel } from "@/components/ObjectCardPanel";
-import { useParams, useLocation } from "wouter";
+import { useParams, useLocation, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Book, Chapter } from "@/shared/types";
@@ -22,22 +21,19 @@ export default function EditorPage() {
   const [bookTitle, setBookTitle] = useState("");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
 
-  const bookIdNum = parseInt(String(bookId));
-  const chapterIdNum = chapterId ? parseInt(chapterId) : undefined;
-
   const { data: book, isLoading: isLoadingBook } = useQuery<Book>({
-    queryKey: [`/api/works/${bookIdNum}`],
-    enabled: !!bookIdNum,
+    queryKey: [`/api/works/${bookId}`],
+    enabled: !!bookId,
   });
 
   const { data: chapter, isLoading: isLoadingChapter } = useQuery<Chapter>({
-    queryKey: [`/api/works/chapters/${chapterIdNum}`],
-    enabled: !!chapterIdNum,
+    queryKey: [`/api/works/chapters/${chapterId}`],
+    enabled: !!chapterId,
   });
 
   const { data: chapters, isLoading: isLoadingChapters } = useQuery<Chapter[]>({
-    queryKey: [`/api/works/${bookIdNum}/chapters`],
-    enabled: !!bookIdNum,
+    queryKey: [`/api/works/${bookId}/chapters`],
+    enabled: !!bookId,
   });
 
   useEffect(() => {
@@ -47,18 +43,18 @@ export default function EditorPage() {
   }, [book]);
 
   useEffect(() => {
-    if (bookIdNum && !chapterIdNum && chapters && chapters.length > 0) {
-      setLocation(`/editor/${bookIdNum}/${chapters[0].id}`);
+    if (bookId && !chapterId && chapters && chapters.length > 0) {
+      setLocation(`/editor/${bookId}/${chapters[0].id}`);
     }
-  }, [bookIdNum, chapterIdNum, chapters, setLocation]);
+  }, [bookId, chapterId, chapters, setLocation]);
 
   const updateBookTitleMutation = useMutation({
     mutationFn: async (title: string) => {
-      await apiRequest("PATCH", `/api/works/${bookIdNum}`, { title });
+      await apiRequest("PATCH", `/api/works/${bookId}`, { title });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/books/${bookIdNum}`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/books"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/works/${bookId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/works"] });
       setIsEditingTitle(false);
       toast({
         title: "Название обновлено",
@@ -69,6 +65,27 @@ export default function EditorPage() {
       toast({
         title: "Ошибка",
         description: `Не удалось обновить название: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const publishMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("PATCH", `/api/works/${bookId}/publish`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/works/${bookId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/works"] });
+      toast({
+        title: "Книга опубликована",
+        description: "Ваша книга успешно опубликована.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Ошибка публикации",
+        description: `Не удалось опубликовать книгу: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -96,7 +113,7 @@ export default function EditorPage() {
     }
   };
 
-  const isLoading = isLoadingBook || (chapterIdNum && isLoadingChapter);
+  const isLoading = isLoadingBook || (chapterId && isLoadingChapter);
 
   if (isLoading) {
     return (
@@ -150,60 +167,75 @@ export default function EditorPage() {
             value="editor"
             className="flex-1 flex flex-col lg:flex-row border-none p-0 mt-0"
           >
-            <div className="w-full lg:w-64 border-r border-neutral-200 bg-white">
-              <div className="p-4 border-b border-neutral-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-neutral-700">
-                    Моя книга
-                  </h2>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => setIsEditingTitle(true)}
-                  >
-                    <i className="fas fa-ellipsis-h text-xs"></i>
-                  </Button>
+            <div className="w-full lg:w-64 border-r border-neutral-200 bg-white flex flex-col justify-between">
+              <div>
+                <div className="p-4 border-b border-neutral-200">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-sm font-semibold text-neutral-700">
+                      Моя книга
+                    </h2>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setIsEditingTitle(true)}
+                    >
+                      <i className="fas fa-ellipsis-h text-xs"></i>
+                    </Button>
+                  </div>
+
+                  <div className="mt-2 relative">
+                    {isEditingTitle ? (
+                      <div className="flex items-center">
+                        <Input
+                          value={bookTitle}
+                          onChange={handleTitleChange}
+                          onBlur={handleTitleSave}
+                          onKeyDown={handleKeyDown}
+                          autoFocus
+                          className="w-full text-base font-medium py-1"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex items-center">
+                        <div
+                          className="w-full text-base font-medium cursor-pointer hover:text-primary transition-colors"
+                          onClick={() => setIsEditingTitle(true)}
+                        >
+                          {book?.title || "Моя книга"}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-neutral-400 hover:text-neutral-700"
+                          onClick={() => setIsEditingTitle(true)}
+                        >
+                          <i className="fas fa-pencil-alt text-xs"></i>
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div className="mt-2 relative">
-                  {isEditingTitle ? (
-                    <div className="flex items-center">
-                      <Input
-                        value={bookTitle}
-                        onChange={handleTitleChange}
-                        onBlur={handleTitleSave}
-                        onKeyDown={handleKeyDown}
-                        autoFocus
-                        className="w-full text-base font-medium py-1"
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex items-center">
-                      <div
-                        className="w-full text-base font-medium cursor-pointer hover:text-primary transition-colors"
-                        onClick={() => setIsEditingTitle(true)}
-                      >
-                        {book?.title || "Моя книга"}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-neutral-400 hover:text-neutral-700"
-                        onClick={() => setIsEditingTitle(true)}
-                      >
-                        <i className="fas fa-pencil-alt text-xs"></i>
-                      </Button>
-                    </div>
-                  )}
-                </div>
+                {book && (
+                  <ChapterList bookId={book._id} currentChapterId={chapterId} />
+                )}
               </div>
 
-              {book && (
-                <ChapterList bookId={book.id} currentChapterId={chapterIdNum} />
+              {book && !book.published && (
+                <div className="p-1.5 border-t border-neutral-200">
+                  <Button
+                    variant="default"
+                    className="w-full"
+                    onClick={() => publishMutation.mutate()}
+                  >
+                    Опубликовать книгу
+                  </Button>
+                </div>
               )}
             </div>
 
+            {/* Основной контент */}
             {chapter ? (
               <WritingEnvironment chapter={chapter} />
             ) : (
@@ -218,7 +250,13 @@ export default function EditorPage() {
               </div>
             )}
 
-            {chapter && <ObjectCardPanel chapterId={chapter.id} />}
+            {chapter && (
+              <ObjectCardPanel
+                bookId={bookId ?? ""}
+                chapterId={chapter.id}
+                chapters={chapters}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="cards" className="flex-1 border-none p-0 mt-0">
@@ -234,7 +272,11 @@ export default function EditorPage() {
                     </p>
                   </div>
                   <div className="flex-1 flex">
-                    <ObjectCardPanel chapterId={chapter.id} />
+                    <ObjectCardPanel
+                      bookId={bookId ?? ""}
+                      chapterId={chapter.id}
+                      chapters={chapters}
+                    />
                   </div>
                 </div>
               ) : (
